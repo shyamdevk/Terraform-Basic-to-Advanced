@@ -283,6 +283,21 @@ provisioner "local-exec" {
 
 📌 *Provisioners should be used only when necessary, not as the main automation tool.*
 
+# 📜 Basic Terraform Commands
+
+| Command              | Description                                                         |
+| -------------------- | ------------------------------------------------------------------- |
+| `terraform init`     | Initializes working directory and downloads required providers.     |
+| `terraform plan`     | Shows what actions Terraform will take without applying them.       |
+| `terraform apply`    | Applies the configuration and creates the infrastructure.           |
+| `terraform destroy`  | Destroys all resources defined in the configuration.                |
+| `terraform validate` | Validates Terraform file syntax.                                    |
+| `terraform fmt`      | Formats Terraform code.                                             |
+| `terraform state`    | Interacts with the Terraform state file (list, show, rm, mv, etc.). |
+
+---
+
+
 # 🚀 Terraform Lab – Create a Simple EC2 Instance
 
 This lab demonstrates how to create a **single EC2 instance** using **only Terraform provider and resource blocks**.
