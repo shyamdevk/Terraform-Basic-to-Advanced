@@ -288,7 +288,7 @@ provisioner "local-exec" {
 This lab demonstrates how to create a **single EC2 instance** using **only Terraform provider and resource blocks**.
 No variables, no modules, no backend, no extra configuration — perfect for beginners.
 
-![TerraForm GIF](https://github.com/shyamdevk/Terraform-Basic-to-Advanced/blob/images/blockec2.gif)
+![TerraForm GIF](https://github.com/shyamdevk/Terraform-Basic-to-Advanced/blob/image/blockec2.gif)
 
 ---
 
