@@ -283,6 +283,133 @@ provisioner "local-exec" {
 
 📌 *Provisioners should be used only when necessary, not as the main automation tool.*
 
+# 🚀 Terraform Lab – Create a Simple EC2 Instance
+
+This lab demonstrates how to create a **single EC2 instance** using **only Terraform provider and resource blocks**.
+No variables, no modules, no backend, no extra configuration — perfect for beginners.
+
+![TerraForm GIF](https://github.com/shyamdevk/Terraform-Basic-to-Advanced/blob/images/blockec2.gif)
+
+---
+
+## 📁 Folder Setup
+
+Create a new folder for Terraform and open it in VS Code:
+
+```bash
+code .
+```
+
+---
+
+## 📌 1. Create `main.tf`
+
+Paste the following minimal Terraform configuration:
+
+```hcl
+# Provider Block
+provider "aws" {
+  region = "us-east-1"
+}
+
+# Resource Block - EC2 Instance
+resource "aws_instance" "demo" {
+  ami           = "ami-0c02fb55956c7d316" # Amazon Linux 2 (us-east-1)
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "Terraform-EC2"
+  }
+}
+```
+
+### ✔ What this does:
+
+* Uses AWS provider
+* Launches **one EC2 instance**
+* Uses a standard Amazon Linux 2 AMI
+* Creates a free-tier eligible `t2.micro` instance
+* Adds a simple tag `Name = Terraform-EC2`
+
+---
+
+## 📌 2. Configure AWS Credentials
+
+Run:
+
+```bash
+aws configure
+```
+
+Enter:
+
+* AWS Access Key
+* AWS Secret Key
+* Default region: `us-east-1`
+* Output: `json`
+
+---
+
+## 📌 3. Initialize Terraform
+
+```bash
+terraform init
+```
+
+This downloads the AWS provider plugin.
+
+---
+
+## 📌 4. View the Execution Plan
+
+```bash
+terraform plan
+```
+
+Terraform will show that **1 EC2 instance** will be created.
+
+---
+
+## 📌 5. Deploy the EC2 Instance
+
+```bash
+terraform apply -auto-approve
+```
+
+Terraform will create the instance in ~30 seconds.
+
+---
+
+## 📌 6. Verify in AWS Console
+
+Go to:
+
+**AWS Console → EC2 → Instances**
+
+You will see:
+
+```
+Terraform-EC2
+```
+
+---
+
+## 📌 7. Delete the EC2 Instance (Cleanup)
+
+```bash
+terraform destroy -auto-approve
+```
+
+---
+
+# 🎉 Lab Completed!
+
+This is the most **simple and clean Terraform EC2 lab**, perfect for beginners learning:
+
+* Provider block
+* Resource block
+* Terraform commands
+
 ---
 
 
