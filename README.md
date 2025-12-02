@@ -506,7 +506,7 @@ resource "aws_s3_bucket" "bucket_us" {
 }
 
 # S3 Bucket in Mumbai (alias provider)
-resource "aws_s3_bucket" "bucket_mumbai" //local name {
+resource "aws_s3_bucket" "bucket_mumbai" {
   provider = aws.mumbai  //calling alias
   bucket   = "my-bucket-mumbai-demo123"
 }
