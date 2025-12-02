@@ -427,5 +427,91 @@ This is the most **simple and clean Terraform EC2 lab**, perfect for beginners l
 
 ---
 
+# **Terraform Alias – Multi-Region S3 Bucket Example**
+
+## 📌 **What is `alias` in Terraform?**
+
+`alias` is used to create **multiple provider configurations** of the same provider.
+
+### ✔️ Why use alias?
+
+* Deploy resources **in multiple regions**
+* Use **multiple AWS accounts**
+* Apply **different provider settings** for different resources
+
+Without alias → Terraform can use **only one provider**.
+With alias → You can create **many providers** and assign them to resources.
+
+---
+
+## 📘 **Example: Create S3 Buckets in Multiple Regions**
+
+### ### **1️⃣ Default Provider (us-east-1)**
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+```
+
+### **2️⃣ Provider With Alias (ap-south-1)**
+
+```hcl
+provider "aws" {
+  alias  = "mumbai"
+  region = "ap-south-1"
+}
+```
+
+---
+
+## 🪣 **Create S3 Buckets**
+
+### **➡️ S3 Bucket in `us-east-1` (Default provider)**
+
+```hcl
+resource "aws_s3_bucket" "bucket_us" {
+  bucket = "my-bucket-us-east-1-demo123"
+}
+```
+
+### **➡️ S3 Bucket in `ap-south-1` (Using alias provider)**
+
+```hcl
+resource "aws_s3_bucket" "bucket_mumbai" {
+  provider = aws.mumbai
+  bucket   = "my-bucket-mumbai-demo123"
+}
+```
+
+---
+
+## 📄 **Full Working Example**
+
+```hcl
+# Default provider (us-east-1)
+provider "aws" {
+  region = "us-east-1"
+}
+
+# Provider with alias (ap-south-1)
+provider "aws" {
+  alias  = "mumbai"
+  region = "ap-south-1"
+}
+
+# S3 Bucket in US East (default provider)
+resource "aws_s3_bucket" "bucket_us" {
+  bucket = "my-bucket-us-east-1-demo123"
+}
+
+# S3 Bucket in Mumbai (alias provider)
+resource "aws_s3_bucket" "bucket_mumbai" {
+  provider = aws.mumbai
+  bucket   = "my-bucket-mumbai-demo123"
+}
+```
+
+---
 
 
