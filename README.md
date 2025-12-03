@@ -514,4 +514,106 @@ resource "aws_s3_bucket" "bucket_mumbai" {
 
 ---
 
+# 🌱 **Terraform Resource Behaviors**
+
+Terraform decides how to manage infrastructure whenever you run:
+
+```
+terraform plan
+terraform apply
+```
+
+There are **four main behaviors** Terraform uses to modify resources.
+These notes explain each behavior **simply** with examples.
+
+---
+
+## 🚀 **1. Create**
+
+Terraform will **create a new resource** when it does not exist.
+
+### 🔸 When does it happen?
+
+* First time applying configuration
+* A new resource block is added
+* Resource deleted manually outside Terraform
+
+### ✔️ Example (plan output)
+
+```
++ create
+```
+
+---
+
+## 🗑️ **2. Destroy**
+
+Terraform will **delete** an existing resource.
+
+### 🔸 When does it happen?
+
+* You remove the resource from the `.tf` file
+* You run `terraform destroy`
+* You changed a setting that forces removal
+
+### ✔️ Example (plan output)
+
+```
+- destroy
+```
+
+---
+
+## 🔧 **3. Update in Place**
+
+Terraform will **modify** the resource **without deleting it**.
+
+### 🔸 When does it happen?
+
+* You change editable fields
+  Example: tags, description, versioning, instance type, etc.
+
+The underlying resource **stays the same**, only its properties are updated.
+
+### ✔️ Example (plan output)
+
+```
+~ update in-place
+```
+
+---
+
+## 🔁 **4. Destroy and Recreate**
+
+Terraform needs to **destroy the resource first** and then **create a new one**.
+
+This occurs when the field you changed is **immutable** (cannot be modified directly).
+
+### 🔸 When does it happen?
+
+* Changing S3 bucket name
+* Changing VPC CIDR
+* Changing RDS storage type
+* Changing IAM immutable fields
+
+### ✔️ Example (plan output)
+
+```
+-/+ destroy and recreate
+```
+
+---
+
+## 📘 **Summary Table**
+
+| Behavior               | Meaning                  | When It Occurs                    |
+| ---------------------- | ------------------------ | --------------------------------- |
+| **Create**             | Makes a new resource     | First apply / new block added     |
+| **Destroy**            | Deletes the resource     | Removed in code / destroy command |
+| **Update In Place**    | Updates without deleting | Editable fields changed           |
+| **Destroy & Recreate** | Delete → create again    | Immutable fields changed          |
+
+---
+
+
 
