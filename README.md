@@ -615,5 +615,79 @@ This occurs when the field you changed is **immutable** (cannot be modified dire
 
 ---
 
+# **Terraform EC2 – Update in Place vs Destroy & Recreate**
+
+This README shows **two simple EC2 examples** that demonstrate how Terraform decides:
+
+* **Update in Place**
+* **Destroy and Recreate**
+
+Both examples use EC2 **without key pairs**.
+
+---
+
+## 🟦 **1. Update in Place (EC2 Example)**
+
+### ✔️ Change: Tags
+
+Tags can be updated without recreating the instance.
+
+```hcl
+resource "aws_instance" "demo" {
+  ami           = "ami-1234567890abcd"
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "Server1-Updated"
+  }
+}
+```
+
+### **Terraform Behavior**
+
+```
+~ update in-place
+```
+
+### **Why?**
+
+Tags are editable → EC2 does not need replacement.
+
+---
+
+## 🟥 **2. Destroy and Recreate (EC2 Example)**
+
+### ✔️ Change: AMI
+
+AMI cannot be changed in place.
+
+```hcl
+resource "aws_instance" "demo" {
+  ami           = "ami-0987654321fedcba"   # changed AMI
+  instance_type = "t2.micro"
+}
+```
+
+### **Terraform Behavior**
+
+```
+-/+ destroy and recreate
+```
+
+### **Why?**
+
+Changing AMI requires a new EC2 → Terraform destroys and recreates it.
+
+---
+
+## ✔️ **Summary**
+
+| Behavior               | What Changed | Reason                             |
+| ---------------------- | ------------ | ---------------------------------- |
+| **Update in Place**    | Tags         | Editable property                  |
+| **Destroy & Recreate** | AMI          | Cannot be modified → must recreate |
+
+---
+
 
 
