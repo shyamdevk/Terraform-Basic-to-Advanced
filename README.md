@@ -689,5 +689,77 @@ Changing AMI requires a new EC2 → Terraform destroys and recreates it.
 
 ---
 
+# **LAB: Create a VPC and Add Subnets Using Terraform**
+
+This lab demonstrates how to create a **VPC** and then add **public and private subnets** inside it using Terraform.
+We also add **Name tags** to identify resources easily.
+
+---
+
+## 🏗️ **1. Create a VPC**
+
+We create a VPC with CIDR **10.0.0.0/16** and a Name tag.
+
+```hcl
+resource "aws_vpc" "MainVPC" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "My-VPC"
+  }
+}
+```
+
+---
+
+## 🌐 **2. Create Subnets Inside the VPC**
+
+We must use valid Availability Zones like:
+`us-east-1a`, `us-east-1b`, `us-east-1c`, etc.
+(AWS does NOT accept the region name like `us-east-1`.)
+
+---
+
+### **Public Subnet (10.0.1.0/24)**
+
+```hcl
+resource "aws_subnet" "public_subnet_1" {
+  vpc_id            = aws_vpc.MainVPC.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-east-1a"
+
+  tags = {
+    Name = "Public-Subnet-1"
+  }
+}
+```
+
+---
+
+### **Private Subnet (10.0.2.0/24)**
+
+```hcl
+resource "aws_subnet" "private_subnet_1" {
+  vpc_id            = aws_vpc.MainVPC.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "us-east-1b"
+
+  tags = {
+    Name = "Private-Subnet-1"
+  }
+}
+```
+
+---
+
+## ✅ **Summary**
+
+* Created a **VPC**
+* Added **Name tag**
+* Added **Public Subnet** in AZ `us-east-1a`
+* Added **Private Subnet** in AZ `us-east-1b`
+* Used valid availability zones to avoid errors
+
+---
 
 
