@@ -966,6 +966,7 @@ The private subnet uses a map without internet routes → so it stays private.
 ---
 
 # **🌟 Terraform Meta Arguments**
+![TerraForm GIF](https://github.com/shyamdevk/Terraform-Basic-to-Advanced/blob/image/meta.webp)
 
 Meta arguments are **special instructions** you add inside a Terraform resource block.
 They **don’t represent a resource**, but they **control how Terraform should create, update, or manage** a resource.
@@ -1127,13 +1128,6 @@ resource "aws_instance" "db" {
 
 ---
 
-# 🎉 Final Notes
-
-* Meta arguments are **powerful but simple** tools for better Terraform management.
-* They **do not create resources**, they only **control behavior**.
-* Every Terraform beginner should understand these before doing advanced projects.
-
----
 
 
 
