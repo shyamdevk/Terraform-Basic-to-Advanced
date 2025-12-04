@@ -1128,7 +1128,7 @@ resource "aws_instance" "db" {
 
 ---
 
-# 🌟 Terraform Meta Arguments — Easy Labs (README.md)
+# 🌟 Terraform Meta Arguments — Easy Labs
 
 This guide contains **simple, beginner-friendly labs** to understand all **Meta Arguments in Terraform**.
 
