@@ -762,4 +762,208 @@ resource "aws_subnet" "private_subnet_1" {
 
 ---
 
+# **LAB: Create VPC, Public & Private Subnets, IGW, and Route Tables Using Terraform**
+
+This lab explains how to build a basic AWS network using Terraform.
+We will create:
+
+* A **VPC**
+* One **public subnet**
+* One **private subnet**
+* An **Internet Gateway**
+* A **Public Route Table**
+* A **Private Route Table**
+* Route table associations for both subnets
+
+By the end, the **public subnet will have internet access**, and the **private subnet will stay isolated**.
+
+---
+
+# 🏗️ **1. Create VPC**
+
+A VPC is the main network container where all resources will be created.
+
+```hcl
+resource "aws_vpc" "MainVPC" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "My-VPC"
+  }
+}
+```
+
+---
+
+# 🌐 **2. Create Public & Private Subnets**
+
+Subnets divide the VPC into smaller networks.
+
+### **Public Subnet**
+
+```hcl
+resource "aws_subnet" "public_subnet_1" {
+  vpc_id            = aws_vpc.MainVPC.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-east-1a"
+
+  tags = {
+    Name = "Public-Subnet-1"
+  }
+}
+```
+
+### **Private Subnet**
+
+```hcl
+resource "aws_subnet" "private_subnet_1" {
+  vpc_id            = aws_vpc.MainVPC.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "us-east-1b"
+
+  tags = {
+    Name = "Private-Subnet-1"
+  }
+}
+```
+
+---
+
+# 🚀 **3. Create Internet Gateway (For Public Subnet)**
+
+An Internet Gateway allows communication between your VPC and the internet.
+Only public subnets will use it.
+
+```hcl
+resource "aws_internet_gateway" "MainIGW" {
+  vpc_id = aws_vpc.MainVPC.id
+
+  tags = {
+    Name = "My-Internet-Gateway"
+  }
+}
+```
+
+---
+
+# 🛣️ **4. Create Route Tables (Very Simple Explanation)**
+
+Think of a **Route Table** as a "map" that tells your subnet:
+
+> **Where should traffic go?**
+> Should it go to the internet?
+> Should it stay inside the VPC?
+
+We create **two route tables**:
+
+* **Public Route Table** → sends traffic to the Internet Gateway
+* **Private Route Table** → keeps traffic ONLY inside the VPC
+
+---
+
+## ⭐ **Public Route Table**
+
+This route table gives **internet access** to the public subnet.
+
+### ✔ Step 4.1 — Create the Public Route Table
+
+```hcl
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.MainVVPC.id
+
+  tags = {
+    Name = "Public-Route-Table"
+  }
+}
+```
+
+### ✔ Step 4.2 — Add Route to Internet (0.0.0.0/0 → IGW)
+
+```hcl
+resource "aws_route" "public_route" {
+  route_table_id         = aws_route_table.public_rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.MainIGW.id
+}
+```
+
+### 🧠 Beginner Explanation
+
+* `0.0.0.0/0` simply means **"everything on the internet"**
+* When your instance tries to go online → this rule sends it to the **Internet Gateway**
+* That’s why it's called a **public** subnet
+
+Without this route, the subnet will **not** have internet—even if it has a public IP.
+
+---
+
+# 🔒 **5. Create Private Route Table (Isolated Subnet)**
+
+Private subnets CANNOT talk to the internet directly.
+So their route table has **no IGW route**.
+
+### ✔ Step 5 — Private Route Table
+
+```hcl
+resource "aws_route_table" "private_rt" {
+  vpc_id = aws_vpc.MainVPC.id
+
+  tags = {
+    Name = "Private-Route-Table"
+  }
+}
+```
+
+### 🧠 Beginner Explanation
+
+* Since there is **no route to Internet Gateway**,
+  the private subnet **stays isolated**
+* It can only talk **inside the VPC**
+
+This is where you normally run **databases, backend servers** etc.
+
+---
+
+# 🔗 **6. Associate Route Tables to Subnets (Very Important)**
+
+Creating route tables is NOT enough.
+Each subnet must be **connected** to a route table.
+
+Think of it like:
+
+> The subnet chooses which “map” (route table) to follow.
+
+---
+
+## ⭐ **6.1 Associate Public Subnet → Public Route Table**
+
+```hcl
+resource "aws_route_table_association" "public_association" {
+  subnet_id      = aws_subnet.public_subnet_1.id
+  route_table_id = aws_route_table.public_rt.id
+}
+```
+
+### 🧠 Explanation
+
+Now the public subnet uses the route that leads to the internet.
+
+---
+
+## ⭐ **6.2 Associate Private Subnet → Private Route Table**
+
+```hcl
+resource "aws_route_table_association" "private_association" {
+  subnet_id      = aws_subnet.private_subnet_1.id
+  route_table_id = aws_route_table.private_rt.id
+}
+```
+
+### 🧠 Explanation
+
+The private subnet uses a map without internet routes → so it stays private.
+
+---
+
+
 
