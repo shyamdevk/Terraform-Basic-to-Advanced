@@ -1128,6 +1128,281 @@ resource "aws_instance" "db" {
 
 ---
 
+# 🌟 Terraform Meta Arguments — Easy Labs (README.md)
+
+This guide contains **simple, beginner-friendly labs** to understand all **Meta Arguments in Terraform**.
+
+Meta arguments help Terraform control **how resources are created, updated, or destroyed**.
+
+---
+
+# 📘 Meta Arguments Covered
+
+* `count`
+* `for_each`
+* `depends_on`
+* `lifecycle`
+
+  * `create_before_destroy`
+  * `prevent_destroy`
+  * `ignore_changes`
+* `provider`
+
+---
+
+---
+
+# 🧪 LAB 1 — Using `count`
+
+### 🎯 Goal
+
+Create **2 EC2 Instances** using the `count` meta argument.
+
+### 📄 main.tf
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "web" {
+  count = 2
+  ami = "ami-0c02fb55956c7d316"
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "Server-${count.index}"
+  }
+}
+```
+
+### ▶️ Steps
+
+1. `terraform init`
+2. `terraform apply`
+3. Go to AWS → EC2 → You will see **2 instances created**.
+
+---
+
+---
+
+# 🧪 LAB 2 — Using `for_each`
+
+### 🎯 Goal
+
+Create **2 S3 Buckets** using `for_each`.
+
+### 📄 main.tf
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+
+locals {
+  bucket_list = {
+    bucket1 = "my-demo-bucket-a"
+    bucket2 = "my-demo-bucket-b"
+  }
+}
+
+resource "aws_s3_bucket" "demo" {
+  for_each = local.bucket_list
+
+  bucket = each.value
+
+  tags = {
+    Name = each.key
+  }
+}
+```
+
+### ▶️ Steps
+
+1. `terraform init`
+2. `terraform apply`
+3. Check AWS S3 → You will see **bucket-a** and **bucket-b**.
+
+---
+
+---
+
+# 🧪 LAB 3 — Using `depends_on`
+
+### 🎯 Goal
+
+Make sure the EC2 instance is created **after** the Security Group.
+
+### 📄 main.tf
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_security_group" "web_sg" {
+  name = "web-sg"
+}
+
+resource "aws_instance" "server" {
+  ami           = "ami-0c02fb55956c7d316"
+  instance_type = "t2.micro"
+
+  depends_on = [
+    aws_security_group.web_sg
+  ]
+}
+```
+
+### ▶️ Steps
+
+1. `terraform apply`
+2. Terraform will first create the **security group**, then the **EC2 instance**.
+
+---
+
+---
+
+# 🧪 LAB 4 — Using `lifecycle`
+
+This lab contains **3 small tests** to understand all lifecycle rules.
+
+---
+
+## 🔸 LAB 4A — `create_before_destroy`
+
+### 🎯 Goal
+
+Terraform should create a new instance **before deleting** the old one.
+
+### 📄 main.tf
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "demo" {
+  ami = "ami-0c02fb55956c7d316"
+  instance_type = "t2.micro"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+```
+
+### ▶️ Steps
+
+1. `terraform apply`
+2. Change instance type → `"t3.micro"`
+3. `terraform apply` again
+4. Terraform creates **new instance first**, then destroys old one.
+
+---
+
+## 🔸 LAB 4B — `prevent_destroy`
+
+### 🎯 Goal
+
+Stop Terraform from deleting the resource.
+
+### 📄 main.tf
+
+```hcl
+resource "aws_s3_bucket" "safe" {
+  bucket = "my-protected-bucket-1234"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+```
+
+### ▶️ Steps
+
+1. `terraform apply`
+2. Run `terraform destroy`
+3. Destroy will **fail** → Resource protected ✔
+
+---
+
+## 🔸 LAB 4C — `ignore_changes`
+
+### 🎯 Goal
+
+Tell Terraform to ignore changes in specific attributes.
+
+### 📄 main.tf
+
+```hcl
+resource "aws_instance" "web" {
+  ami = "ami-0c02fb55956c7d316"
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "Demo"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      tags
+    ]
+  }
+}
+```
+
+### ▶️ Steps
+
+1. Apply once
+2. Change the tag name manually in EC2 console
+3. Run `terraform apply`
+4. Terraform **ignores tag changes**
+
+---
+
+---
+
+# 🧪 LAB 5 — Using `provider`
+
+### 🎯 Goal
+
+Use **two AWS regions** and deploy one bucket in each region.
+
+### 📄 main.tf
+
+```hcl
+provider "aws" {
+  alias  = "east"
+  region = "us-east-1"
+}
+
+provider "aws" {
+  alias  = "west"
+  region = "us-west-1"
+}
+
+resource "aws_s3_bucket" "east_bucket" {
+  provider = aws.east
+  bucket   = "bucket-in-east-1234"
+}
+
+resource "aws_s3_bucket" "west_bucket" {
+  provider = aws.west
+  bucket   = "bucket-in-west-1234"
+}
+```
+
+### ▶️ Steps
+
+1. `terraform init`
+2. `terraform apply`
+3. Check AWS S3
+
+   * One bucket in **us-east-1**
+   * One bucket in **us-west-1**
+
+---
 
 
 
