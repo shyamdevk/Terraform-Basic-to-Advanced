@@ -778,9 +778,8 @@ resource "aws_vpc" "MainVPC" {
 
 ### 📝 Explanation
 
-* A **VPC** is your own private network inside AWS.
-* `cidr_block = "10.0.0.0/16"` gives you **65,536 IPs**.
-* All subnets, EC2 instances, route tables, etc., will be created **inside this VPC**.
+A VPC is your private network in AWS.
+`10.0.0.0/16` gives ~65K IPs and will hold all our resources.
 
 ---
 
@@ -800,10 +799,8 @@ resource "aws_subnet" "public_subnet_1" {
 
 ### 📝 Explanation
 
-* Subnet belongs to the VPC using `vpc_id`.
-* `10.0.1.0/24` gives **256 IPs** for public resources.
-* Placed in **Availability Zone us-east-1a**.
-* This subnet will become public when we attach a route to the IGW.
+A public subnet is one that will later get internet access using IGW.
+CIDR `10.0.1.0/24` gives 256 IPs.
 
 ---
 
@@ -823,10 +820,8 @@ resource "aws_subnet" "private_subnet_1" {
 
 ### 📝 Explanation
 
-* Another subnet inside the same VPC.
-* `10.0.2.0/24` gives another **256 private IPs**.
-* Placed in **different AZ (us-east-1b)** for high availability.
-* No internet access → Perfect for backend or DB servers.
+The private subnet will not get internet access.
+Used for backend or database instances.
 
 ---
 
@@ -844,13 +839,12 @@ resource "aws_internet_gateway" "MainIGW" {
 
 ### 📝 Explanation
 
-* Internet Gateway is needed for any resource to access the **internet**.
-* We attach it to the VPC using `vpc_id`.
-* Only **public subnet** will use this IGW.
+Internet Gateway gives the VPC a connection to the internet.
+Only public subnet uses this.
 
 ---
 
-# 5️⃣ **Create Public Route Table**
+# 5️⃣ **Public Route Table**
 
 ```hcl
 resource "aws_route_table" "public_rt" {
@@ -864,13 +858,12 @@ resource "aws_route_table" "public_rt" {
 
 ### 📝 Explanation
 
-* A route table decides **where traffic should go**.
-* This one will be used for the **public subnet**.
-* Created inside the VPC.
+Route tables decide how traffic flows inside/outside AWS.
+This one is for public subnet.
 
 ---
 
-# 6️⃣ **Add Route to Internet (Public Route)**
+# 6️⃣ **Add Route to IGW**
 
 ```hcl
 resource "aws_route" "public_route" {
@@ -882,12 +875,12 @@ resource "aws_route" "public_route" {
 
 ### 📝 Explanation
 
-* This route sends **all internet traffic (0.0.0.0/0)** → Internet Gateway.
-* This is the key step that makes the **subnet a public subnet**.
+`0.0.0.0/0` means internet traffic.
+Sending it to IGW makes the subnet **public**.
 
 ---
 
-# 7️⃣ **Create Private Route Table**
+# 7️⃣ **Private Route Table**
 
 ```hcl
 resource "aws_route_table" "private_rt" {
@@ -901,13 +894,12 @@ resource "aws_route_table" "private_rt" {
 
 ### 📝 Explanation
 
-* Private subnet needs its own route table.
-* Notice: **No route to IGW**, so no internet.
-* Keeps internal servers safe and isolated.
+Used for private subnet.
+No internet route → fully isolated.
 
 ---
 
-# 8️⃣ **Associate Public Subnet with Public Route Table**
+# 8️⃣ **Associate Public Subnet**
 
 ```hcl
 resource "aws_route_table_association" "public_association" {
@@ -918,12 +910,11 @@ resource "aws_route_table_association" "public_association" {
 
 ### 📝 Explanation
 
-* This connects the **public subnet** → **public route table**.
-* Now the public subnet gets internet.
+Links the public subnet → public route table → internet access enabled.
 
 ---
 
-# 9️⃣ **Associate Private Subnet with Private Route Table**
+# 9️⃣ **Associate Private Subnet**
 
 ```hcl
 resource "aws_route_table_association" "private_association" {
@@ -934,12 +925,11 @@ resource "aws_route_table_association" "private_association" {
 
 ### 📝 Explanation
 
-* This connects the **private subnet** → **private route table**.
-* No internet access for private subnet.
+Links the private subnet → private route table → no internet.
 
 ---
 
-# 🔟 **Create Public Security Group**
+# 🔟 **Public Security Group**
 
 ```hcl
 resource "aws_security_group" "public_sg" {
@@ -948,7 +938,6 @@ resource "aws_security_group" "public_sg" {
   vpc_id      = aws_vpc.MainVPC.id
 
   ingress {
-    description = "SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -956,7 +945,6 @@ resource "aws_security_group" "public_sg" {
   }
 
   ingress {
-    description = "HTTP"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -974,13 +962,13 @@ resource "aws_security_group" "public_sg" {
 
 ### 📝 Explanation
 
-* Allows SSH from anywhere → used to log in.
-* Allows HTTP from anywhere → used for web server.
-* Suitable for **public-facing EC2 instances**.
+* Allows SSH from anywhere
+* Allows HTTP from anywhere
+  Needed for public EC2 instance.
 
 ---
 
-# 1️⃣1️⃣ **Create Private Security Group**
+# 1️⃣1️⃣ **Private Security Group**
 
 ```hcl
 resource "aws_security_group" "private_sg" {
@@ -989,7 +977,6 @@ resource "aws_security_group" "private_sg" {
   vpc_id      = aws_vpc.MainVPC.id
 
   ingress {
-    description = "Allow only VPC internal traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -1007,13 +994,35 @@ resource "aws_security_group" "private_sg" {
 
 ### 📝 Explanation
 
-* Allows traffic **only from inside the VPC** (10.0.0.0/16).
-* Perfect for a **private EC2 instance** like DB or backend.
-* Does NOT allow SSH from outside.
+Allows traffic only from VPC internal IP range.
+Good for private instances like DB/backends.
 
 ---
 
-# 1️⃣2️⃣ **Create Public EC2 Instance**
+# 1️⃣2️⃣ **Create Key Pair (NEW)**
+
+```hcl
+resource "aws_key_pair" "mykey" {
+  key_name   = "my-terraform-key"
+  public_key = file("~/.ssh/id_rsa.pub")
+}
+```
+
+### 📝 Explanation
+
+* A key pair is needed to **SSH into EC2**.
+* Terraform will upload your **public key** to AWS.
+* Make sure you already have:
+
+  ```
+  ~/.ssh/id_rsa
+  ~/.ssh/id_rsa.pub
+  ```
+* You will use the **private key** (`id_rsa`) to connect to EC2.
+
+---
+
+# 1️⃣3️⃣ **Public EC2 Instance (with key pair)**
 
 ```hcl
 resource "aws_instance" "public_instance" {
@@ -1023,6 +1032,7 @@ resource "aws_instance" "public_instance" {
   security_groups = [aws_security_group.public_sg.id]
 
   associate_public_ip_address = true
+  key_name = aws_key_pair.mykey.key_name
 
   tags = {
     Name = "Public-Instance"
@@ -1032,14 +1042,14 @@ resource "aws_instance" "public_instance" {
 
 ### 📝 Explanation
 
-* Placed in **public subnet**.
-* Has a **public IP address**.
-* Accessible from internet via SSH & HTTP.
-* Security Group allows web traffic.
+* Public instance → has public IP
+* Uses the **key pair** for SSH access
+* Security Group allows HTTP + SSH
+* Great for web servers or bastion host
 
 ---
 
-# 1️⃣3️⃣ **Create Private EC2 Instance**
+# 1️⃣4️⃣ **Private EC2 Instance (with key pair)**
 
 ```hcl
 resource "aws_instance" "private_instance" {
@@ -1049,6 +1059,7 @@ resource "aws_instance" "private_instance" {
   security_groups = [aws_security_group.private_sg.id]
 
   associate_public_ip_address = false
+  key_name = aws_key_pair.mykey.key_name
 
   tags = {
     Name = "Private-Instance"
@@ -1058,23 +1069,12 @@ resource "aws_instance" "private_instance" {
 
 ### 📝 Explanation
 
-* Placed in **private subnet**.
-* **No public IP** → cannot access from internet.
-* Used for backend or database systems.
-* Only internal VPC traffic allowed.
+* Private instance → **no public IP**
+* Still has the key pair, but you must SSH **via the public instance (bastion)**
+* Only internal access allowed
+* Good for private app layers / database
 
 ---
-
-# 🎉 Final Words
-
-This is the **perfect beginner-friendly explanation** of:
-
-* VPC
-* Subnets
-* IGW
-* Route Tables
-* SGs
-* Public & Private EC2
 
 # **🌟 Terraform Meta Arguments**
 ![TerraForm GIF](https://github.com/shyamdevk/Terraform-Basic-to-Advanced/blob/image/meta.webp)
