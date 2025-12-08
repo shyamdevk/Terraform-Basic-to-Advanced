@@ -1524,7 +1524,7 @@ Here is a **simple, clean, beginner-friendly README.md** showing:
 
 ---
 
-# 🌟 README.md — Using External User Data File (VS Code) for Nginx Installation
+# 🌟Using External User Data File (VS Code) for Nginx Installation
 
 This guide explains how to:
 
