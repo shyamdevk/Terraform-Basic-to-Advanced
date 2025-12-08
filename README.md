@@ -1514,6 +1514,130 @@ resource "aws_s3_bucket" "west_bucket" {
    * One bucket in **us-west-1**
 
 ---
+Understood!
+Here is a **simple, clean, beginner-friendly README.md** showing:
+
+✅ How to create a **userdata.sh file in VS Code**
+✅ How to write nginx installation script
+✅ How to call this userdata file from **main.tf**
+✅ Very easy explanation for freshers
+
+---
+
+# 🌟 README.md — Using External User Data File (VS Code) for Nginx Installation
+
+This guide explains how to:
+
+1. Create a **userdata.sh** file in VS Code
+2. Add nginx installation script
+3. Call that userdata file inside **Terraform EC2 resource**
+4. Launch EC2 with nginx automatically installed
+
+Perfect for beginners.
+
+---
+
+# 1️⃣ Step 1: Create a User Data File in VS Code
+
+Open VS Code and create a new file:
+
+```
+userdata.sh
+```
+
+Your project folder will look like:
+
+```
+vpc-project/
+ ├── main.tf
+ ├── provider.tf
+ ├── userdata.sh   <-- (new file)
+```
+
+---
+
+# 2️⃣ Step 2: Add Nginx Installation Script in userdata.sh
+
+Open **userdata.sh** and paste:
+
+```bash
+#!/bin/bash
+sudo yum update -y
+sudo yum install -y nginx
+sudo systemctl enable nginx
+sudo systemctl start nginx
+```
+
+### 📝 Explanation
+
+* This script installs nginx automatically
+* Runs when EC2 first boots
+* Starts the webserver immediately
+
+Save the file:
+
+```
+CTRL + S
+```
+
+---
+
+# 3️⃣ Step 3: Call User Data File in main.tf
+
+In your EC2 resource, replace inline user_data with:
+
+```hcl
+user_data = file("${path.module}/userdata.sh")
+```
+
+### ✔ Full Example EC2 Resource (Simple)
+
+```hcl
+resource "aws_instance" "public_instance" {
+  ami                    = "ami-0c02fb55956c7d316"
+  instance_type          = "t2.micro"
+  subnet_id              = aws_subnet.public_subnet_1.id
+  security_groups        = [aws_security_group.public_sg.id]
+  associate_public_ip_address = true
+  key_name               = aws_key_pair.mykey.key_name
+
+  user_data = file("${path.module}/userdata.sh")
+
+  tags = {
+    Name = "Public-Instance"
+  }
+}
+```
+
+### 📝 Explanation
+
+* `file()` → reads an external script
+* `${path.module}` → points to the current folder
+* EC2 will run **userdata.sh** when it launches
+
+---
+
+Terraform will:
+
+✔ Launch EC2
+✔ Upload user_data.sh script
+✔ Install nginx
+✔ Start nginx
+✔ EC2 becomes web server
+
+---
+
+# 6️⃣ Summary (Very Beginner-Friendly)
+
+| File                | Purpose                                   |
+| ------------------- | ----------------------------------------- |
+| **userdata.sh**     | Holds nginx installation script           |
+| **main.tf**         | Calls the file using `user_data = file()` |
+| **VS Code**         | Create & edit the script easily           |
+| **Terraform Apply** | Runs the script on EC2 boot               |
+
+---
+
 
 
 
