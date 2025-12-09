@@ -1637,7 +1637,7 @@ Terraform will:
 | **Terraform Apply** | Runs the script on EC2 boot               |
 
 ---
-#Create AWS Key Pair and EC2
+# Create AWS Key Pair and EC2
 
 **Purpose**
 
