@@ -4,20 +4,20 @@
 A clean and simple guide to understanding **IaC** and **Terraform** for beginners.
 ![Terraform GIF](terraform.gif)
 
-# 📚 Table of Contents
-- [Terraform Basics](#-terraform-basics)
-- [What is IaC?](#1-what-is-iac-infrastructure-as-code)
-- [Advantages of IaC](#2-advantages-of-iac)
-- [Popular IaC Tools](#3-popular-iac-tools)
-- [What is Terraform?](#4-what-is-terraform)
-- [Advantages of Terraform](#5-advantages-of-terraform)
-- [Terraform Blocks](#-terraform-blocks)
-- [EC2 Lab](#-terraform-lab--create-a-simple-ec2-instance)
-- [Alias Provider Lab](#-terraform-alias--multi-region-s3-bucket-example)
-- [Resource Behaviors](#-terraform-resource-behaviors)
-- [VPC + Subnets Lab](#lab-create-a-vpc-and-add-subnets-using-terraform)
-- [Full VPC + EC2 Lab](#lab-terraform-lab-vpc-subnets-igw-route-tables--ec2-with-explanation)
-- [Create AWS Key Pair and EC2](#create-aws-key-pair-and-ec2)
+---
+| 📚 **Table of Contents** |
+|--------------------------|
+| [Terraform Basics](#-terraform-basics) |
+| [What is IaC?](#1-what-is-iac-infrastructure-as-code) |
+| [Popular IaC Tools](#3-popular-iac-tools) |
+| [What is Terraform?](#4-what-is-terraform) |
+| [Terraform Blocks](#-terraform-blocks) |
+| [EC2 Lab](#-terraform-lab--create-a-simple-ec2-instance) |
+| [Alias Provider Lab](#-terraform-alias--multi-region-s3-bucket-example) |
+| [Resource Behaviors](#-terraform-resource-behaviors) |
+| [VPC + Subnets Lab](#lab-create-a-vpc-and-add-subnets-using-terraform) |
+| [Full VPC + EC2 Lab](#lab-terraform-lab-vpc-subnets-igw-route-tables--ec2-with-explanation) |
+| [Create AWS Key Pair and EC2](#create-aws-key-pair-and-ec2) |
 
 ---
 
