@@ -1814,7 +1814,7 @@ resource "aws_instance" "my_ec2" {
 
 # 🌍 Terraform Workspaces
 
-![TerraForm GIF](https://github.com/shyamdevk/Terraform-Basic-to-Advanced/blob/image/workspace.gif)
+![TerraForm GIF](https://github.com/shyamdevk/Terraform-Basic-to-Advanced/blob/image/workflow.gif)
 
 This lab explains **Terraform Workspaces** using a **real-world example** of different departments:
 - Developer
