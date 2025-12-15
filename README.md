@@ -2080,3 +2080,137 @@ terraform destroy
 
 ---
 
+# 🪣 Terraform Lab – Create S3 Bucket with Versioning
+
+This lab shows how to **create an Amazon S3 bucket** and **enable versioning** using **Terraform**.
+
+This guide is written for **beginners**, so every step is explained clearly and simply.
+
+---
+
+## 📁 Step 1: Create Project Folder
+
+```bash
+mkdir terraform-s3-versioning
+cd terraform-s3-versioning
+````
+
+This folder will store all Terraform files.
+
+---
+
+## 📄 Step 2: Create `main.tf`
+
+Create a file named **`main.tf`** and add the following code:
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = "shyamdevk-terraform-s3-versioning-001"
+}
+
+resource "aws_s3_bucket_versioning" "versioning" {
+  bucket = aws_s3_bucket.my_bucket.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+```
+
+---
+
+## 🔍 Code Explanation (Very Simple)
+
+### 🔹 AWS Provider
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+```
+
+* Tells Terraform to use AWS
+* Resources will be created in `us-east-1`
+
+---
+
+### 🔹 S3 Bucket Creation
+
+```hcl
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = "shyamdevk-terraform-s3-versioning-001"
+}
+```
+
+* Creates an S3 bucket
+* Bucket name must be **globally unique**
+* If name already exists, change the number (001 → 002)
+
+---
+
+### 🔹 Enable Versioning
+
+```hcl
+resource "aws_s3_bucket_versioning" "versioning" {
+  bucket = aws_s3_bucket.my_bucket.id
+```
+
+* Links versioning to the created bucket
+
+```hcl
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+```
+
+* Turns ON versioning
+* Keeps all file versions
+
+---
+
+## 🚀 Step 3: Initialize Terraform
+
+```bash
+terraform init
+```
+
+This command:
+
+* Downloads required AWS plugins
+* Prepares Terraform to run
+
+---
+
+## 🏗 Step 4: Apply Terraform Code
+
+```bash
+terraform apply
+```
+
+Type **yes** when asked.
+
+Terraform will:
+
+* Create the S3 bucket
+* Enable versioning
+
+---
+
+## 🔍 Step 5: Verify in AWS Console
+
+1. Open **AWS Console**
+2. Go to **S3**
+3. Click your bucket name
+4. Open **Properties**
+5. Check **Bucket Versioning**
+6. Status should show **Enabled**
+
+---
+
+
+
