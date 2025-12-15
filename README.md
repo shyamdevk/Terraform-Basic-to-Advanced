@@ -1811,7 +1811,272 @@ resource "aws_instance" "my_ec2" {
 }
 ```
 
-> **Note:** Replace the AMI ID with a valid AMI for your chosen AWS region. AMI IDs vary by region and over time.
 
+# 🌍 Terraform Workspaces
 
+![TerraForm GIF](https://github.com/shyamdevk/Terraform-Basic-to-Advanced/blob/image/workspace.gif)
+
+This lab explains **Terraform Workspaces** using a **real-world example** of different departments:
+- Developer
+- Tester
+- Production
+
+We will use **one Terraform code** to create **separate EC2 instances** for each department.
+
+---
+
+## 🧠 What is a Terraform Workspace?
+
+A **Terraform workspace** allows you to manage **multiple environments** (dev, test, prod) using the **same Terraform configuration**, but with **separate state files**.
+
+👉 Same code  
+👉 Different environments  
+👉 No resource conflict  
+
+---
+
+## 🏢 Real-Life Example (Departments)
+
+| Department | Use Case |
+|----------|---------|
+| Developer | Feature development |
+| Tester | QA testing |
+| Production | Live application |
+
+Each department:
+- Uses the same infrastructure structure
+- Needs isolated resources
+
+Terraform workspaces solve this problem.
+
+---
+
+## 📂 How Terraform Stores Workspaces
+
+Terraform automatically creates separate state files:
+
+```
+
+terraform.tfstate.d/
+├── dev/
+├── test/
+└── prod/
+
+````
+
+Each folder contains its own `terraform.tfstate` file.
+
+---
+
+## 🎯 Lab Goal
+
+We will:
+- Create **3 workspaces**
+- Launch **1 EC2 per workspace**
+- Use **different instance sizes**
+- Use **workspace name in resource tags**
+
+---
+
+## ✅ Prerequisites
+
+Make sure you have:
+- Terraform installed
+- AWS CLI configured using `aws configure`
+- IAM user with EC2 permissions
+
+---
+
+## 📁 Step 1: Create Project Folder
+
+```bash
+mkdir terraform-workspace-lab
+cd terraform-workspace-lab
+````
+
+This folder will contain all Terraform files.
+
+---
+
+## 📄 Step 2: Create `main.tf`
+
+This file defines **what infrastructure to create**.
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "example" {
+  ami           = "ami-0c02fb55956c7d316"
+  instance_type = var.instance_type
+
+  tags = {
+    Name       = "EC2-${terraform.workspace}"
+    Department = terraform.workspace
+  }
+}
+```
+
+### 🔍 Explanation:
+
+* `terraform.workspace` automatically gives the workspace name
+* Each EC2 gets a unique name like `EC2-dev`, `EC2-test`, etc.
+* Same code works for all departments
+
+---
+
+## 📄 Step 3: Create `variables.tf`
+
+This file defines **input values**.
+
+```hcl
+variable "instance_type" {
+  description = "EC2 instance type based on department"
+  type        = string
+}
+```
+
+This allows us to change EC2 size per workspace.
+
+---
+
+## 🚀 Step 4: Initialize Terraform
+
+```bash
+terraform init
+```
+
+### What this does:
+
+* Downloads AWS provider
+* Prepares Terraform to run
+
+You must run this **once per project**.
+
+---
+
+## 🏗 Step 5: Create Workspaces
+
+```bash
+terraform workspace new dev
+terraform workspace new test
+terraform workspace new prod
+```
+
+Terraform now has **three environments**.
+
+Check workspaces:
+
+```bash
+terraform workspace list
+```
+
+---
+
+## 👨‍💻 Step 6: Developer Environment
+
+Switch to **dev workspace**:
+
+```bash
+terraform workspace select dev
+```
+
+Apply Terraform:
+
+```bash
+terraform apply -var="instance_type=t2.micro"
+```
+
+### Result:
+
+* EC2 instance created
+* Name: `EC2-dev`
+* Used by Developers
+
+---
+
+## 🧪 Step 7: Tester Environment
+
+Switch to **test workspace**:
+
+```bash
+terraform workspace select test
+```
+
+Apply Terraform:
+
+```bash
+terraform apply -var="instance_type=t2.small"
+```
+
+### Result:
+
+* EC2 instance created
+* Name: `EC2-test`
+* Used by QA team
+
+---
+
+## 🚀 Step 8: Production Environment
+
+Switch to **prod workspace**:
+
+```bash
+terraform workspace select prod
+```
+
+Apply Terraform:
+
+```bash
+terraform apply -var="instance_type=t2.medium"
+```
+
+### Result:
+
+* EC2 instance created
+* Name: `EC2-prod`
+* Production-ready server
+
+---
+
+## 🔍 Step 9: Verify in AWS Console
+
+Go to **AWS EC2 Dashboard** and you will see:
+
+* EC2-dev
+* EC2-test
+* EC2-prod
+
+Each instance:
+
+* Created using same Terraform code
+* Managed by different workspace state
+
+---
+
+## 🧹 Step 10: Destroy a Specific Environment
+
+Destroy **only developer resources**:
+
+```bash
+terraform workspace select dev
+terraform destroy
+```
+
+✔ Test and Production are not affected
+
+---
+
+## ⚠️ Important Notes
+
+* Workspaces isolate **state**, not code
+* One workspace cannot see another
+* Always check workspace before applying or destroying
+* Use workspaces for:
+
+  * dev / test / prod
+  * teams or departments
+
+---
 
