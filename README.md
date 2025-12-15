@@ -259,6 +259,7 @@ module "vpc" {
 ```
 
 📌 *Modules make Terraform scalable and organized.*
+👉 [Go to Terraform Module Block Lab](#terraform-module-lab)
 
 ---
 
@@ -2212,5 +2213,205 @@ Terraform will:
 
 ---
 
+# 📦 Terraform Lab – Using Module Block <a name="terraform-module-lab"></a>
 
+## 🎯 Lab Objective
+
+By the end of this lab, you will:
+- Understand Terraform module blocks
+- Create a reusable module
+- Launch EC2 and S3 using the module
+- Run Terraform using VS Code terminal
+
+---
+
+## 📁 Folder Structure (IMPORTANT)
+
+Create the folder structure exactly like this:
+
+```
+
+terraform-ec2-s3-module-lab/
+├── main.tf
+└── modules/
+└── ec2_s3/
+├── main.tf
+├── variables.tf
+└── outputs.tf
+
+```
+
+---
+
+## 📁 Step 1: Create Project Folder (VS Code)
+
+1. Open **VS Code**
+2. Click **File → Open Folder**
+3. Create and open a folder named:
+
+```
+
+terraform-ec2-s3-module-lab
+
+````
+
+---
+
+## 📁 Step 2: Create Module Folder
+
+Inside VS Code terminal:
+
+```bash
+mkdir -p modules/ec2_s3
+````
+
+This folder will store reusable Terraform code.
+
+---
+
+# 🔹 MODULE CODE (Reusable Part)
+
+## 📄 Step 3: Create `modules/ec2_s3/variables.tf`
+
+```hcl
+variable "ami_id" {
+  description = "AMI ID for EC2"
+  type        = string
+}
+
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+}
+
+variable "bucket_name" {
+  description = "S3 bucket name"
+  type        = string
+}
+```
+
+### 🧠 Explanation
+
+* These variables accept values from the root module
+* This makes the module reusable
+
+---
+
+## 📄 Step 4: Create `modules/ec2_s3/main.tf`
+
+```hcl
+resource "aws_instance" "ec2" {
+  ami           = var.ami_id
+  instance_type = var.instance_type
+
+  tags = {
+    Name = "Module-EC2"
+  }
+}
+
+resource "aws_s3_bucket" "bucket" {
+  bucket = var.bucket_name
+}
+```
+
+### 🧠 Explanation
+
+* Creates **one EC2 instance**
+* Creates **one S3 bucket**
+* Uses input values from variables
+
+---
+
+## 📄 Step 5: Create `modules/ec2_s3/outputs.tf`
+
+```hcl
+output "ec2_id" {
+  value = aws_instance.ec2.id
+}
+
+output "bucket_name" {
+  value = aws_s3_bucket.bucket.bucket
+}
+```
+
+### 🧠 Explanation
+
+* Outputs allow root module to read values
+* Useful for verification and reuse
+
+---
+
+# 🔹 ROOT MODULE (Where Module is Called)
+
+## 📄 Step 6: Create root `main.tf`
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+
+module "ec2_s3_module" {
+  source = "./modules/ec2_s3"
+
+  ami_id        = "ami-0c02fb55956c7d316"
+  instance_type = "t2.micro"
+  bucket_name   = "shyamdevk-ec2-s3-module-001"
+}
+```
+
+---
+
+## 🧠 Understanding the Module Block
+
+```hcl
+module "ec2_s3_module" {
+```
+
+* Name of the module
+
+```hcl
+source = "./modules/ec2_s3"
+```
+
+* Path to the module folder
+
+```hcl
+ami_id = "ami-0c02fb55956c7d316"
+```
+
+* Value passed to the module
+
+---
+
+## 🚀 Step 7: Run Terraform (VS Code Terminal)
+
+Open **VS Code Terminal** and run:
+
+```bash
+terraform init
+```
+
+Then:
+
+```bash
+terraform apply
+```
+
+Type **yes** when asked.
+
+---
+
+## 🔍 Step 8: Verify in AWS Console
+
+### EC2
+
+1. Go to **AWS → EC2**
+2. You will see **Module-EC2**
+
+### S3
+
+1. Go to **AWS → S3**
+2. You will see your bucket
+
+---
 
