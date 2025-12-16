@@ -2415,3 +2415,215 @@ Type **yes** when asked.
 
 ---
 
+# 🌍 Terraform State: Local, Remote & State Locking
+
+![Terraform](https://img.shields.io/badge/Terraform-IaC-purple)
+![AWS](https://img.shields.io/badge/AWS-S3%20%7C%20DynamoDB-orange)
+![Level](https://img.shields.io/badge/Level-Beginner-brightgreen)
+
+---
+
+## 📘 What is Terraform State?
+
+Terraform **state** is a file that keeps track of:
+
+* Resources created by Terraform
+* Current configuration of those resources
+* Mapping between Terraform code and real infrastructure
+
+By default, Terraform stores this data in:
+
+```
+terraform.tfstate
+```
+
+---
+
+## 1️⃣ Local State (Default)
+
+### 🔹 What is Local State?
+
+Local state means the **state file is stored on your local machine**.
+
+📄 File name:
+
+```
+terraform.tfstate
+```
+
+📍 Location:
+
+* Same directory as your Terraform code
+
+---
+
+### 🔹 How Local State Works
+
+```text
+Terraform code → terraform apply → terraform.tfstate (local)
+```
+
+---
+
+### 🔹 Advantages
+
+✔ Very easy to use
+✔ No extra setup required
+✔ Good for learning and testing
+
+---
+
+### 🔹 Disadvantages
+
+❌ Not safe for team usage
+❌ No state locking
+❌ Risk of state file loss or corruption
+
+---
+
+### 🔹 When to Use
+
+* Practice labs
+* Personal projects
+* Single-user environments
+
+---
+
+## 2️⃣ Remote State (Remote Backend)
+
+### 🔹 What is Remote State?
+
+Remote state means the **Terraform state file is stored in a remote location**, not on a local machine.
+
+Common remote backends:
+
+* AWS S3
+* Azure Blob Storage
+* Google Cloud Storage
+* Terraform Cloud
+
+---
+
+## 🟠 Remote Backend using AWS S3
+
+### 🔹 Why Use S3 for State?
+
+✔ Centralized state storage
+✔ Secure and durable
+✔ Team collaboration
+✔ Supports versioning
+
+---
+
+### 🔹 How S3 Backend Works
+
+```text
+Terraform code
+     ↓
+AWS S3 (Remote Backend)
+     ↓
+terraform.tfstate
+```
+
+---
+
+### 🔹 Simple S3 Backend Configuration
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket = "my-terraform-state-bucket"
+    key    = "dev/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+```
+
+---
+
+### 🔹 Explanation
+
+| Option   | Description                 |
+| -------- | --------------------------- |
+| `bucket` | S3 bucket name              |
+| `key`    | Path and name of state file |
+| `region` | AWS region of S3 bucket     |
+
+---
+
+### 🔹 Benefits of Remote State
+
+✔ Shared state across team
+✔ Safe and reliable storage
+✔ Enables state locking
+✔ Supports multiple environments
+
+---
+
+## 3️⃣ State Locking (Why It Is Important)
+
+### 🔹 What is State Locking?
+
+State locking **prevents multiple users from modifying the Terraform state at the same time**.
+
+Without locking:
+
+* Two users run `terraform apply`
+* State file may become corrupted
+
+---
+
+## 🔐 State Locking with DynamoDB
+
+### 🔹 How DynamoDB Locking Works
+
+```text
+terraform apply
+     ↓
+Lock created in DynamoDB
+     ↓
+Infrastructure changes applied
+     ↓
+Lock released
+```
+
+---
+
+### 🔹 DynamoDB Table Requirements
+
+* Table name (example): `terraform-locks`
+* Primary key:
+
+  ```
+  LockID (String)
+  ```
+
+---
+
+### 🔹 S3 Backend with DynamoDB Locking
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = "my-terraform-state-bucket"
+    key            = "prod/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-locks"
+    encrypt        = true
+  }
+}
+```
+
+---
+
+### 🔹 Explanation of Locking Options
+
+| Option           | Purpose                    |
+| ---------------- | -------------------------- |
+| `dynamodb_table` | Enables state locking      |
+| `encrypt`        | Encrypts state file in S3  |
+| `key`            | Environment-specific state |
+
+---
+
+
