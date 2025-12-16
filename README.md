@@ -2625,5 +2625,282 @@ terraform {
 | `key`            | Environment-specific state |
 
 ---
+# 🧪 Terraform Lab: Remote State with S3 and DynamoDB Locking
+
+## 📌 What is this Lab?
+
+In this lab, you will learn how to:
+- Store **Terraform state file in AWS S3** (not on your local laptop)
+- **Lock the Terraform state using DynamoDB**
+- Create AWS resources using **Terraform in VS Code**
+- Follow **real-world DevOps best practices**
+
+This lab is **beginner friendly** and uses:
+- AWS Console (for S3 and DynamoDB)
+- VS Code (for Terraform code)
+
+---
+
+## 🧠 Why Remote State and Locking?
+
+### ❓ Problem with Local State
+If Terraform state is stored locally:
+- Team members cannot share state
+- State file can be lost
+- Two people may apply changes at the same time
+
+### ✅ Solution
+- Store state in **S3**
+- Lock state using **DynamoDB**
+
+---
+
+## 🛠️ Prerequisites
+
+Before starting, make sure you have:
+- AWS Account
+- Terraform installed
+- VS Code installed
+- AWS CLI configured
+
+```bash
+aws configure
+````
+
+(Enter Access Key, Secret Key, region like `us-east-1`)
+
+---
+
+## 🪣 Step 1: Create S3 Bucket for Terraform State (AWS Console)
+
+This bucket will store the `terraform.tfstate` file.
+
+### Steps:
+
+1. Go to **AWS Console**
+2. Open **S3**
+3. Click **Create bucket**
+
+### Bucket Details:
+
+* **Bucket name** (must be unique):
+
+  ```
+  my-terraform-state-bucket-12345
+  ```
+* **Region**:
+
+  ```
+  us-east-1
+  ```
+
+Keep all other options default
+Click **Create bucket**
+
+✅ S3 bucket is ready to store Terraform state
+
+---
+
+## 🔐 Step 2: Create DynamoDB Table for State Locking (AWS Console)
+
+DynamoDB prevents **multiple users from changing infrastructure at the same time**.
+
+### Steps:
+
+1. Open **DynamoDB**
+2. Click **Create table**
+
+### Table Configuration:
+
+* **Table name**:
+
+  ```
+  terraform-lock-table
+  ```
+* **Partition key**:
+
+  ```
+  LockID
+  ```
+* **Type**:
+
+  ```
+  String
+  ```
+
+### Settings:
+
+* Billing mode: **On-demand (PAY_PER_REQUEST)**
+* Leave all other options default
+
+Click **Create table**
+
+⚠️ Do NOT add items manually
+Terraform will manage locking automatically
+
+---
+
+## 📁 Step 3: Create Terraform Project (VS Code)
+
+```bash
+mkdir terraform-remote-state-lab
+cd terraform-remote-state-lab
+code .
+```
+
+---
+
+## 📝 Step 4: Configure AWS Provider (`provider.tf`)
+
+This tells Terraform **which cloud and region to use**.
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+```
+
+---
+
+## 📝 Step 5: Configure Remote Backend (`backend.tf`)
+
+This tells Terraform:
+
+* Where to store state
+* How to lock state
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = "my-terraform-state-bucket-12345"
+    key            = "terraform/state/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-lock-table"
+    encrypt        = true
+  }
+}
+```
+
+### 🔎 Easy Explanation:
+
+* `bucket` → S3 bucket for state
+* `key` → folder & filename inside S3
+* `dynamodb_table` → enables locking
+* `encrypt` → protects state file
+
+---
+
+## 🧱 Step 6: Create a Sample Resource (`main.tf`)
+
+We create **one S3 bucket** using Terraform.
+
+```hcl
+resource "aws_s3_bucket" "demo_bucket" {
+  bucket = "terraform-demo-resource-bucket-67890"
+
+  tags = {
+    Name = "Terraform Demo Bucket"
+  }
+}
+```
+
+This proves:
+
+* Terraform is working
+* State changes are saved remotely
+
+---
+
+## ▶️ Step 7: Initialize Terraform
+
+```bash
+terraform init
+```
+
+### What happens here?
+
+* Terraform connects to S3
+* Creates state file in S3
+* Enables DynamoDB locking
+
+---
+
+## 📋 Step 8: Validate and Plan
+
+```bash
+terraform validate
+terraform plan
+```
+
+* `validate` → checks syntax
+* `plan` → shows what Terraform will create
+
+---
+
+## 🚀 Step 9: Apply Terraform Configuration
+
+```bash
+terraform apply
+```
+
+Type **yes** when asked.
+
+Terraform will:
+
+* Lock state in DynamoDB
+* Create AWS resource
+* Save state in S3
+* Remove lock after completion
+
+---
+
+## 🔍 Step 10: Verify State File in S3
+
+1. Open **AWS Console → S3**
+2. Open your bucket:
+
+   ```
+   my-terraform-state-bucket-12345
+   ```
+3. Navigate to:
+
+   ```
+   terraform/state/terraform.tfstate
+   ```
+
+✅ Confirms state is **not stored locally**
+
+---
+
+## 🔒 Step 11: Verify DynamoDB Locking
+
+1. Open **DynamoDB**
+2. Select table: `terraform-lock-table`
+3. Click **Explore table items**
+4. Run `terraform apply` again
+
+You will see:
+
+* `LockID` entry appears during apply
+* Entry disappears after completion
+
+✅ Locking works correctly
+
+---
+
+## 🧹 Step 12: Cleanup (Optional)
+
+```bash
+terraform destroy
+```
+
+After that, manually delete:
+
+* Terraform-created S3 bucket
+* State S3 bucket
+* DynamoDB table
+
+---
+
 
 
