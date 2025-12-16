@@ -238,11 +238,11 @@ data "aws_ami" "ubuntu" {
   most_recent = true
 }
 ```
+👉 [Go to Terraform Data Block Lab](#Terraform Lab: Using Data Block)
 
 📌 *Used when you want Terraform to fetch an existing AMI, VPC, Subnet, etc.*
 
 ---
-
 ## 8️⃣ **module block**
 
 The **module block** is used to reuse Terraform code.
@@ -2902,5 +2902,155 @@ After that, manually delete:
 
 ---
 
+# 🧪 Terraform Lab: Using Data Block
+
+## 📌 What is This Lab?
+
+In this lab, you will learn:
+- What a **Terraform data block** is
+- How to **fetch an existing AMI** from AWS
+- How to use that AMI to **launch an EC2 instance**
+
+👉 No AMI ID is hard-coded  
+👉 Terraform finds the AMI automatically
+
+---
+
+## ❓ What is a Data Block?
+
+A **data block** is used to:
+- **Read existing resources**
+- Not create anything new
+
+Example:
+- Fetch AMI
+- Read VPC
+- Read subnet
+
+🧠 **Easy meaning**:  
+> Data block = “Read only”
+
+---
+
+## 🧩 Step 1: Create Project Folder
+
+```bash
+mkdir terraform-data-ami-lab
+cd terraform-data-ami-lab
+code .
+````
+
+---
+
+## 📝 Step 2: Configure Provider (`provider.tf`)
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+```
+
+---
+
+## 📥 Step 3: Fetch Latest Amazon Linux AMI (Data Block)
+
+Create `data.tf`
+
+```hcl
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+
+  owners = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+}
+```
+
+### 🔎 Simple Explanation:
+
+* `data "aws_ami"` → fetch AMI info
+* `most_recent = true` → get latest AMI
+* `owners = ["amazon"]` → official Amazon AMI
+* `filter` → AMI name pattern
+
+⚠️ This does **not** create anything.
+
+---
+
+## 🧱 Step 4: Create EC2 Using the Data Block (`main.tf`)
+
+```hcl
+resource "aws_instance" "demo_ec2" {
+  ami           = data.aws_ami.amazon_linux.id
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "Data-Block-AMI-Demo"
+  }
+}
+```
+
+### 🧠 Key Line to Remember:
+
+```hcl
+ami = data.aws_ami.amazon_linux.id
+```
+
+👉 This connects **data block → resource**
+
+---
+
+## ▶️ Step 5: Initialize Terraform
+
+```bash
+terraform init
+```
+
+---
+
+## 📋 Step 6: Validate and Plan
+
+```bash
+terraform validate
+terraform plan
+```
+
+Terraform will:
+
+* Fetch AMI details
+* Show EC2 creation plan
+
+---
+
+## 🚀 Step 7: Apply Terraform
+
+```bash
+terraform apply
+```
+
+Type **yes** when asked.
+
+---
+
+## 🔍 Step 8: Verify in AWS Console
+
+1. Open **EC2**
+2. Go to **Instances**
+3. You will see:
+
+   ```
+   Data-Block-AMI-Demo
+   ```
+
+---
+
+## 🧹 Step 9: Cleanup
+
+```bash
+terraform destroy
+```
 
 
