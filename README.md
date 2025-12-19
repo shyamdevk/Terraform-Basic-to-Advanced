@@ -3054,3 +3054,357 @@ terraform destroy
 ```
 
 
+# 🌍 Terraform Import & Drift – Guide with Labs
+
+This guide explains **Terraform Import** and **Terraform Drift** in a **simple and practical way** with step-by-step labs.  
+It is written assuming **you are a fresher** and new to Terraform.
+
+---
+
+## 📌 Prerequisites
+
+Before starting:
+- AWS Account
+- AWS CLI configured (`aws configure`)
+- Terraform installed
+- Basic knowledge of EC2
+
+---
+
+# 🔹 PART 1: Terraform Import
+
+---
+
+## ✅ What is Terraform Import?
+
+Terraform Import is used when:
+
+- A resource **already exists in AWS**
+- It was **not created using Terraform**
+- You want Terraform to **start managing it**
+
+👉 Terraform **does NOT create the resource**  
+👉 It only adds the resource to the **Terraform state file**
+
+---
+
+## 🧠 Real-World Example
+
+- EC2 was created manually in AWS Console
+- Company wants **Infrastructure as Code**
+- You cannot delete and recreate the resource
+
+➡️ **Terraform Import solves this problem**
+
+---
+
+## 🧪 LAB 1: Terraform Import (EC2 Example)
+
+### 🎯 Lab Goal
+- Create an EC2 manually
+- Import it into Terraform
+- Verify Terraform manages it
+
+---
+
+### 🧩 Step 1: Create EC2 Manually (AWS Console)
+
+1. Go to **EC2 Dashboard**
+2. Launch an EC2 instance
+   - AMI: Amazon Linux
+   - Instance type: `t2.micro`
+   - Name: `manual-ec2`
+3. Launch the instance
+4. Copy the **Instance ID**
+   - Example: `i-0abcd1234efgh5678`
+
+---
+
+### 🧩 Step 2: Create Terraform Project
+
+```bash
+mkdir terraform-import-lab
+cd terraform-import-lab
+````
+
+Create a file called `main.tf`
+
+---
+
+### 🧩 Step 3: Add AWS Provider
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+```
+
+👉 Tells Terraform which cloud and region to use
+
+---
+
+### 🧩 Step 4: Add Resource Block (Required)
+
+Even though EC2 already exists, Terraform **needs a resource block**
+
+```hcl
+resource "aws_instance" "imported_ec2" {
+  ami           = "ami-xxxxxxxx"
+  instance_type = "t2.micro"
+}
+```
+
+📌 Values don’t need to be exact yet
+
+---
+
+### 🧩 Step 5: Initialize Terraform
+
+```bash
+terraform init
+```
+
+---
+
+### 🧩 Step 6: Import the EC2 Instance
+
+```bash
+terraform import aws_instance.imported_ec2 i-0abcd1234efgh5678
+```
+
+Format:
+
+```
+terraform import <resource_type>.<resource_name> <resource_id>
+```
+
+---
+
+### 🧩 Step 7: Verify Import
+
+```bash
+terraform state list
+```
+
+Expected output:
+
+```
+aws_instance.imported_ec2
+```
+
+---
+
+### 🧩 Step 8: Check for Differences
+
+```bash
+terraform plan
+```
+
+Terraform may show changes because code and real resource may not match yet.
+
+---
+
+### 🧩 Step 9: Sync Code with Real Resource (Best Practice)
+
+```bash
+terraform show
+```
+
+👉 Copy actual values
+👉 Update `main.tf` until `terraform plan` shows **no changes**
+
+---
+
+## ✅ Terraform Import Summary
+
+| Point                   | Description |
+| ----------------------- | ----------- |
+| Creates resource        | ❌ No        |
+| Updates state file      | ✅ Yes       |
+| Used for existing infra | ✅ Yes       |
+
+---
+
+# 🔹 PART 2: Terraform Drift
+
+---
+
+## ✅ What is Terraform Drift?
+
+Terraform Drift occurs when:
+
+* Resource is created using Terraform
+* Someone **changes it manually** in AWS Console or CLI
+* Terraform code is **not updated**
+
+👉 Result: **Code ≠ Actual Infrastructure**
+
+---
+
+## ❗ Why Drift is Dangerous?
+
+* Unexpected production issues
+* Security risks
+* Terraform may revert manual changes
+* Infrastructure becomes unreliable
+
+---
+
+## 🧪 LAB 2: Terraform Drift Example
+
+---
+
+### 🎯 Lab Goal
+
+* Create EC2 using Terraform
+* Modify it manually
+* Detect and fix drift
+
+---
+
+### 🧩 Step 1: Create EC2 Using Terraform
+
+`main.tf`
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "drift_ec2" {
+  ami           = "ami-0abcdef12345"
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "terraform-ec2"
+  }
+}
+```
+
+---
+
+### 🧩 Step 2: Initialize and Apply
+
+```bash
+terraform init
+terraform apply
+```
+
+Type:
+
+```
+yes
+```
+
+---
+
+### 🧩 Step 3: Create Drift (Manual Change)
+
+1. Go to **AWS EC2 Console**
+2. Select the instance
+3. Change **Instance Type**
+
+   * `t2.micro` → `t2.small`
+4. Save changes
+
+⚠️ Terraform does not know this happened
+
+---
+
+### 🧩 Step 4: Detect Drift
+
+```bash
+terraform plan
+```
+
+You will see output similar to:
+
+```diff
+~ instance_type = "t2.small" -> "t2.micro"
+```
+
+👉 This confirms **Terraform Drift**
+
+---
+
+### 🧩 Step 5: Fix Drift
+
+#### Option 1️⃣ Accept Terraform Code (Recommended)
+
+```bash
+terraform apply
+```
+
+Terraform changes EC2 back to `t2.micro`
+
+---
+
+#### Option 2️⃣ Accept Manual Change
+
+Update `main.tf`:
+
+```hcl
+instance_type = "t2.small"
+```
+
+Then apply again:
+
+```bash
+terraform apply
+```
+
+---
+
+## ✅ Terraform Drift Summary
+
+| Scenario             | Result        |
+| -------------------- | ------------- |
+| Manual change in AWS | Drift occurs  |
+| `terraform plan`     | Detects drift |
+| `terraform apply`    | Fixes drift   |
+
+---
+
+## 🔐 Best Practices to Avoid Drift
+
+* Avoid manual changes
+* Use IAM permissions carefully
+* Run `terraform plan` often
+* Store state in **S3 + DynamoDB Lock**
+* Follow Infrastructure as Code strictly
+
+---
+
+## 🧠 Terraform Import vs Drift (Comparison)
+
+| Feature | Terraform Import | Terraform Drift |
+|------|------|
+| Purpose | Manage existing resources | Detect unexpected changes |
+| Creates resource | ❌ No | ❌ No |
+| Updates state | ✅ Yes | ❌ No |
+| Main Command | `terraform import` | `terraform plan` |
+
+---
+
+## 🎯 Interview One-Line Answers
+
+**Terraform Import:**
+Used to bring existing cloud resources under Terraform management.
+
+**Terraform Drift:**
+Occurs when infrastructure changes outside Terraform, causing mismatch.
+
+---
+
+## ✅ End of Lab 🎉
+
+You have successfully learned:
+
+* Terraform Import
+* Terraform Drift
+* Real-world usage
+* Hands-on labs
+
+---
+
+
